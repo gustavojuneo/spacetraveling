@@ -7,13 +7,12 @@ import { FiCalendar, FiUser } from 'react-icons/fi';
 
 import Prismic from '@prismicio/client';
 
-import { format } from 'date-fns';
-import ptBR from 'date-fns/locale/pt-BR';
-
 import { getPrismicClient } from '../services/prismic';
 
 import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
+import Header from '../components/Header';
+import { parsePtBrDate } from '../utils/parsePtBrDate';
 
 interface Post {
   uid?: string;
@@ -51,13 +50,7 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
 
       const newPosts = results.map(post => ({
         uid: post.uid,
-        first_publication_date: format(
-          new Date(post.first_publication_date),
-          'd MMM yyyy',
-          {
-            locale: ptBR,
-          }
-        ),
+        first_publication_date: post.first_publication_date,
         data: {
           title: post.data.title,
           subtitle: post.data.subtitle,
@@ -76,11 +69,7 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
   const seeMoreButton = isLoading ? (
     <span>Carregando...</span>
   ) : (
-    <button
-      type="button"
-      className={styles.loadMoreButton}
-      onClick={loadMorePosts}
-    >
+    <button type="button" className={styles.loadMore} onClick={loadMorePosts}>
       Carregar mais posts
     </button>
   );
@@ -91,9 +80,11 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
         <title>Posts | spacetraveling.</title>
       </Head>
 
+      <Header />
+
       <main className={commonStyles.container}>
         {posts.map(post => (
-          <Link href="/" key={post.uid}>
+          <Link href={`/post/${post.uid}`} key={post.uid}>
             <a className={styles.post}>
               <h2>{post.data.title}</h2>
               <p>{post.data.subtitle}</p>
@@ -101,7 +92,7 @@ export default function Home({ postsPagination }: HomeProps): JSX.Element {
               <div className={commonStyles.postInfo}>
                 <span>
                   <FiCalendar />
-                  {post.first_publication_date}
+                  {parsePtBrDate(post.first_publication_date)}
                 </span>
                 <span>
                   <FiUser />
@@ -130,13 +121,7 @@ export const getStaticProps: GetStaticProps = async () => {
   const formatedPosts = results.map(post => {
     return {
       uid: post.uid,
-      first_publication_date: format(
-        new Date(post.first_publication_date),
-        'd MMM yyyy',
-        {
-          locale: ptBR,
-        }
-      ),
+      first_publication_date: post.first_publication_date,
       data: {
         title: post.data.title,
         subtitle: post.data.subtitle,
