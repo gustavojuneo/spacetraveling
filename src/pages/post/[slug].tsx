@@ -8,6 +8,7 @@ import ptBR from 'date-fns/locale/pt-BR';
 import { FiCalendar, FiClock, FiUser } from 'react-icons/fi';
 import { useRouter } from 'next/router';
 import { RichText } from 'prismic-dom';
+import Link from 'next/link';
 import { getPrismicClient } from '../../services/prismic';
 
 import commonStyles from '../../styles/common.module.scss';
@@ -18,6 +19,7 @@ import { Comments } from '../../components/Comments';
 
 interface Post {
   first_publication_date: string | null;
+  uid: string;
   data: {
     title: string;
     banner: {
@@ -35,9 +37,17 @@ interface Post {
 
 interface PostProps {
   post: Post;
+  preview: boolean;
+  nextPost: Post | null;
+  prevPost: Post | null;
 }
 
-export default function Post({ post }: PostProps): JSX.Element {
+export default function Post({
+  post,
+  preview,
+  nextPost,
+  prevPost,
+}: PostProps): JSX.Element {
   const router = useRouter();
 
   if (router.isFallback) {
@@ -110,6 +120,31 @@ export default function Post({ post }: PostProps): JSX.Element {
             />
           </div>
         ))}
+        <div className={styles.navigateTool}>
+          {prevPost && (
+            <Link href={`/post/${prevPost.uid}`}>
+              <a className={styles.previous}>
+                {prevPost.data.title}
+                <span>Post anterior</span>
+              </a>
+            </Link>
+          )}
+          {nextPost && (
+            <Link href={`/post/${nextPost.uid}`}>
+              <a className={styles.next}>
+                {nextPost.data.title}
+                <span>Próximo post</span>
+              </a>
+            </Link>
+          )}
+        </div>
+        {preview && (
+          <aside className={commonStyles.exitPreview}>
+            <Link href="/api/exit-preview">
+              <a>Sair do modo Preview</a>
+            </Link>
+          </aside>
+        )}
       </article>
       <div className={commonStyles.content} id="comments">
         <Comments />
@@ -135,15 +170,39 @@ export const getStaticPaths: GetStaticPaths = async () => {
   };
 };
 
-export const getStaticProps: GetStaticProps = async ({ params: { slug } }) => {
+export const getStaticProps: GetStaticProps = async ({
+  params: { slug },
+  preview = false,
+  previewData,
+}) => {
   const prismic = getPrismicClient();
-  const response = await prismic.getByUID('posts', String(slug), {});
+  const response = await prismic.getByUID('posts', String(slug), {
+    ref: previewData?.ref ?? null,
+  });
 
   if (!response) {
     return {
       notFound: true,
     };
   }
+
+  const prevPost = (
+    await prismic.query(Prismic.predicates.at('document.type', 'posts'), {
+      pageSize: 1,
+      after: response.id,
+      orderings: '[document.first_publication_date desc]',
+      fetch: ['posts.title'],
+    })
+  ).results[0];
+
+  const nextPost = (
+    await prismic.query(Prismic.predicates.at('document.type', 'posts'), {
+      pageSize: 1,
+      after: response.id,
+      orderings: '[document.first_publication_date]',
+      fetch: ['posts.title'],
+    })
+  ).results[0];
 
   const formatedPost = {
     data: {
@@ -162,6 +221,9 @@ export const getStaticProps: GetStaticProps = async ({ params: { slug } }) => {
   return {
     props: {
       post: formatedPost,
+      preview,
+      prevPost: prevPost ?? null,
+      nextPost: nextPost ?? null,
     },
     revalidate: 60 * 60, // 1 hour
   };

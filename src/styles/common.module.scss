@@ -25,3 +25,19 @@
     }
   }
 }
+
+.exitPreview {
+  border-radius: 4px;
+  background: var(--gray-50);
+  font-weight: 600;
+  text-align: center;
+  margin: 5.5rem 0;
+  color: #1A1D23;
+
+  a {
+    display: block;
+    width: 100%;
+    padding: 1.125rem 0;
+    font-size: 1.125rem;
+  }
+}
