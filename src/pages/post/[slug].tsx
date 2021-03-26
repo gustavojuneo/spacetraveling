@@ -19,6 +19,7 @@ import { Comments } from '../../components/Comments';
 
 interface Post {
   first_publication_date: string | null;
+  last_publication_date: string | null;
   uid: string;
   data: {
     title: string;
@@ -109,6 +110,11 @@ export default function Post({
             {timeToRead} min
           </span>
         </div>
+        {post.first_publication_date !== post.last_publication_date && (
+          <div className={styles.editedPost}>
+            <p>*editado em {parsePtBrDate(post.last_publication_date)}</p>
+          </div>
+        )}
         {post.data.content.map(content => (
           <div key={content.heading} className={styles.postContent}>
             <h2>{content.heading}</h2>
@@ -216,6 +222,7 @@ export const getStaticProps: GetStaticProps = async ({
     },
     uid: response.uid,
     first_publication_date: response.first_publication_date,
+    last_publication_date: response.last_publication_date,
   };
 
   return {
