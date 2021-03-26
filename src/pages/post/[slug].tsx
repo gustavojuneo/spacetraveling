@@ -152,9 +152,11 @@ export default function Post({
           </aside>
         )}
       </article>
-      <div className={commonStyles.content} id="comments">
-        <Comments />
-      </div>
+      {!preview && (
+        <div className={commonStyles.content} id="comments">
+          <Comments />
+        </div>
+      )}
     </>
   );
 }
