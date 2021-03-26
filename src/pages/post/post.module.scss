@@ -58,6 +58,15 @@
       margin: 0.5rem 0;
     }
   }
+
+  a {
+    color: var(--highlight);
+    transition: .2s;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
 
 .navigateTool {
